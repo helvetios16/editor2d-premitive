@@ -32,8 +32,8 @@ struct AppContext {
   int fbW, fbH;                /* tamaño del framebuffer (px reales, Retina) */
   double mouseX, mouseY;       /* posicion actual del cursor */
   bool mouseDown;              /* boton izquierdo pulsado */
-  bool wasDragging;            /* true si el gesto ya supero el umbral de drag */
-  double pressX, pressY;       /* punto donde se presiono (para medir el drag) */
+  bool wasDragging;      /* true si el gesto ya supero el umbral de drag */
+  double pressX, pressY; /* punto donde se presiono (para medir el drag) */
 };
 
 /* ------------------------------------------------------------------ */

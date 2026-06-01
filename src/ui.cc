@@ -97,61 +97,75 @@ static void addBtn(std::vector<Button> &btns, float x, float y, float w,
    de color, la paleta (2x5) y los botones de archivo/escena. */
 void buildToolbar(std::vector<Button> &btns) {
   btns.clear();
-  const float X = 5.0f;
-  const float W = TOOLBAR_W - 10.0f;
-  const float BH = 24.0f; /* alto de boton */
-  const float G = 4.0f;   /* separacion vertical */
-  float y = 30.0f;
 
-  auto nextY = [&]() -> float {
+  /* Ritmo vertical unico: un solo margen (PAD), una sola separacion entre
+     botones (GAP) y un hueco fijo (HEADER) reservado encima de cada grupo
+     para su etiqueta de seccion (que drawToolbar dibuja anclada al primer
+     boton del grupo). Asi la separacion es uniforme y no hay solapes. */
+  const float PAD = 8.0f;                 /* margen izq/der del panel       */
+  const float X = PAD;                    /* x comun de los botones a ancho  */
+  const float W = TOOLBAR_W - 2.0f * PAD; /* ancho util (124)               */
+  const float BH = 22.0f;                 /* alto de boton                  */
+  const float GAP = 4.0f;                 /* separacion entre botones        */
+  const float HEADER = 18.0f;             /* hueco para el titulo de seccion */
+  float y = 24.0f;                        /* debajo del titulo "EDITOR 2D"   */
+
+  /* Apila un boton de ancho completo y avanza el cursor una fila. */
+  auto row = [&]() -> float {
     float cur = y;
-    y += BH + G;
+    y += BH + GAP;
     return cur;
   };
+  /* Reserva el hueco de la etiqueta antes del primer boton de un grupo. */
+  auto section = [&]() { y += HEADER; };
 
-  /* --- Herramientas de dibujo --- */
-  addBtn(btns, X, nextY(), W, BH, "Punto    [P]", Action::TOOL_POINT);
-  addBtn(btns, X, nextY(), W, BH, "Linea    [L]", Action::TOOL_LINE);
-  addBtn(btns, X, nextY(), W, BH, "Polilnea [O]", Action::TOOL_POLYLINE);
-  addBtn(btns, X, nextY(), W, BH, "Poligono [G]", Action::TOOL_POLYGON);
-  y += 6.0f; /* separador */
+  /* --- Dibujo --- */
+  section();
+  addBtn(btns, X, row(), W, BH, "Punto    [P]", Action::TOOL_POINT);
+  addBtn(btns, X, row(), W, BH, "Linea    [L]", Action::TOOL_LINE);
+  addBtn(btns, X, row(), W, BH, "Polilnea [O]", Action::TOOL_POLYLINE);
+  addBtn(btns, X, row(), W, BH, "Poligono [G]", Action::TOOL_POLYGON);
 
-  /* --- Seleccion / transformacion --- */
-  addBtn(btns, X, nextY(), W, BH, "Selec    [S]", Action::TOOL_SELECT);
-  addBtn(btns, X, nextY(), W, BH, "Trasladar[T]", Action::TOOL_TRANSLATE);
-  addBtn(btns, X, nextY(), W, BH, "Rotar    [R]", Action::TOOL_ROTATE);
-  addBtn(btns, X, nextY(), W, BH, "Escalar  [E]", Action::TOOL_SCALE);
-  y += 6.0f;
+  /* --- Transformar --- */
+  section();
+  addBtn(btns, X, row(), W, BH, "Selec    [S]", Action::TOOL_SELECT);
+  addBtn(btns, X, row(), W, BH, "Trasladar[T]", Action::TOOL_TRANSLATE);
+  addBtn(btns, X, row(), W, BH, "Rotar    [R]", Action::TOOL_ROTATE);
+  addBtn(btns, X, row(), W, BH, "Escalar  [E]", Action::TOOL_SCALE);
 
-  /* --- Relleno --- */
-  addBtn(btns, X, nextY(), W, BH, "Relleno  [F]", Action::TOGGLE_FILL);
-  y += 6.0f;
+  /* --- Color / Relleno --- */
+  section();
+  addBtn(btns, X, row(), W, BH, "Relleno  [F]", Action::TOGGLE_FILL);
 
-  /* --- Target de color (dos botones mitad de ancho) --- */
-  float hw = (W - 4.0f) / 2.0f;
-  addBtn(btns, X, y, hw, BH, "Contorno", Action::TARGET_OUTLINE);
-  addBtn(btns, X + hw + 4, y, hw, BH, "Relleno", Action::TARGET_FILL);
-  y += BH + G + 6.0f;
+  /* Target de color: dos botones de medio ancho en la misma fila. */
+  float hw = (W - GAP) / 2.0f;
+  float ty = y;
+  y += BH + GAP;
+  addBtn(btns, X, ty, hw, BH, "Contorno", Action::TARGET_OUTLINE);
+  addBtn(btns, X + hw + GAP, ty, hw, BH, "Relleno", Action::TARGET_FILL);
 
-  /* --- Paleta de colores (2 filas x 5) --- */
-  float sw = (W - 4.0f * 4) / 5.0f; /* ancho de cada swatch */
-  float sh = 18.0f;
-  for (int row = 0; row < 2; row++) {
+  /* Paleta de colores (2 filas x 5), con la misma GAP que el resto. */
+  float sw = (W - 4.0f * GAP) / 5.0f; /* ancho de cada swatch */
+  float sh = 16.0f;
+  float py0 = y;
+  for (int r = 0; r < 2; r++) {
     for (int col = 0; col < 5; col++) {
-      int idx = row * 5 + col;
-      float sx = X + col * (sw + 4.0f);
-      float sy = y + row * (sh + 4.0f);
+      int idx = r * 5 + col;
+      float sx = X + col * (sw + GAP);
+      float sy = py0 + r * (sh + GAP);
       Action ca = static_cast<Action>(static_cast<int>(Action::COLOR_0) + idx);
       btns.push_back({sx, sy, sw, sh, "", ca});
     }
   }
-  y += 2 * (sh + 4.0f) + 8.0f;
+  y = py0 + 2.0f * (sh + GAP);
+  y += 32.0f; /* hueco para el preview de color que dibuja drawToolbar */
 
   /* --- Archivo / escena --- */
-  addBtn(btns, X, nextY(), W, BH, "Guardar [^S]", Action::FILE_SAVE);
-  addBtn(btns, X, nextY(), W, BH, "Abrir   [^O]", Action::FILE_LOAD);
-  addBtn(btns, X, nextY(), W, BH, "Limpiar [Del]", Action::SCENE_CLEAR);
-  addBtn(btns, X, nextY(), W, BH, "Demo    [D]", Action::SCENE_DEMO);
+  section();
+  addBtn(btns, X, row(), W, BH, "Guardar [^S]", Action::FILE_SAVE);
+  addBtn(btns, X, row(), W, BH, "Abrir   [^O]", Action::FILE_LOAD);
+  addBtn(btns, X, row(), W, BH, "Limpiar [Del]", Action::SCENE_CLEAR);
+  addBtn(btns, X, row(), W, BH, "Demo    [D]", Action::SCENE_DEMO);
 }
 
 /* ------------------------------------------------------------------ */
@@ -176,7 +190,7 @@ void drawToolbar(const std::vector<Button> &btns, Action activeTool,
 
   /* Titulo */
   glColor3f(0.8f, 0.8f, 1.0f);
-  drawText(8.0f, 18.0f, "EDITOR 2D");
+  drawText(8.0f, 16.0f, "EDITOR 2D");
 
   /* Botones */
   for (const auto &b : btns) {
@@ -204,9 +218,22 @@ void drawToolbar(const std::vector<Button> &btns, Action activeTool,
     }
   }
 
-  /* Etiquetas de secciones */
-  glColor3f(0.55f, 0.75f, 0.55f);
-  drawText(8.0f, 28.0f + 2.0f, "Dibujo");
+  /* Etiquetas de secciones: se anclan al primer boton de cada grupo, justo
+     en el hueco HEADER que buildToolbar reservo encima de el. Asi quedan
+     siempre alineadas con el layout sin coordenadas duplicadas. */
+  auto sectionLabel = [&](Action anchor, const char *txt) {
+    for (const auto &b : btns) {
+      if (b.action == anchor) {
+        glColor3f(0.55f, 0.75f, 0.55f);
+        drawText(b.x, b.y - 6.0f, txt);
+        return;
+      }
+    }
+  };
+  sectionLabel(Action::TOOL_POINT, "Dibujo");
+  sectionLabel(Action::TOOL_SELECT, "Transformar");
+  sectionLabel(Action::TOGGLE_FILL, "Color / Relleno");
+  sectionLabel(Action::FILE_SAVE, "Archivo");
 
   /* Preview de colores actuales bajo la paleta */
   /* Localizar la posicion Y de la paleta buscando el ultimo swatch */

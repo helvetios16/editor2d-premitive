@@ -23,10 +23,10 @@ enum class ShapeType { POINT, LINE, POLYLINE, POLYGON };
    por figura; al trasladar/rotar/escalar, la transformacion se aplica de
    inmediato a 'vertices' (ver shapeTransform). */
 struct Shape {
-  ShapeType type;            /* que clase de primitiva es */
+  ShapeType type;             /* que clase de primitiva es */
   std::vector<Vec2> vertices; /* puntos que la componen (coords de pantalla) */
-  Color outline;             /* color del contorno / linea */
-  Color fill;                /* color de relleno (solo POLYGON) */
-  bool filled;               /* true = se pinta el interior del poligono */
-  bool selected;             /* true = esta seleccionada (se resalta) */
+  Color outline;              /* color del contorno / linea */
+  Color fill;                 /* color de relleno (solo POLYGON) */
+  bool filled;                /* true = se pinta el interior del poligono */
+  bool selected;              /* true = esta seleccionada (se resalta) */
 };
