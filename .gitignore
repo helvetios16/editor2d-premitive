@@ -1,0 +1,10 @@
+# Build output
+build/
+*.o
+
+# Editor / tooling caches
+.cache/
+compile_commands.json
+
+# Scratch
+web.txt
